@@ -64,6 +64,7 @@ EOL
 fi
 
 majorVersion=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getVersionPropertyJson" | jq ".result.version.major")
+echo "Read Majorversion: $majorVersion"
 
 if [ $majorVersion -eq 18 ]
 then
