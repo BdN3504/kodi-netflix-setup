@@ -38,6 +38,10 @@ then
   touch "$kodiHome"/userdata/advancedsettings.xml
 fi
 
+kodiExecutable=$(command -v kodi)
+kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
+kodiPid=$(ps -C "$kodiBin" -o pid=)
+
 cat >"$kodiHome"/userdata/advancedsettings.xml <<EOL
 <advancedsettings version="1.0">
    <services>
