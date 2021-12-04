@@ -56,7 +56,7 @@ EOL
     kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
     while [ -z "$kodiBin" ]
     do
-      read -r "You need to start kodi now."
+      read -u 1 -p -r "You need to start kodi now."
       kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
     done
   fi
