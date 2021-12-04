@@ -33,11 +33,6 @@ then
   sudo apt -yq install curl
 fi
 
-if [ ! -f "$kodiHome"/userdata/advancedsettings.xml ]
-then
-  touch "$kodiHome"/userdata/advancedsettings.xml
-fi
-
 pingResult=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$pingJson" | jq -r ".result")
 if [ "pong" != "$pingResult" ]
 then
@@ -47,6 +42,7 @@ then
   enableInAdvancedSettings=${enableInAdvancedSettingsInput:-$enableInAdvancedSettings}
   if [ "yes" = "$enableInAdvancedSettings" ]
   then
+    mkdir -p "$kodiHome"/userdata
     cat >"$kodiHome"/userdata/advancedsettings.xml <<EOL
 <advancedsettings version="1.0">
    <services>
@@ -57,11 +53,16 @@ then
    </services>
 </advancedsettings>
 EOL
+    kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
+    while [ -z "$kodiBin" ]
+    do
+      read -r "You need to start kodi now."
+      kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
+    done
   fi
 fi
 
 majorVersion=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getVersionPropertyJson" | jq ".result.version.major")
-echo "Read Majorversion: $majorVersion"
 
 if [ $majorVersion -eq 18 ]
 then
