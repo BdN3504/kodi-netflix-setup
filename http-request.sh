@@ -19,6 +19,9 @@ EOF
   echo "$result"
 }
 
+pingJson='{"jsonrpc":"2.0","method":"JSONRPC.Ping","id":1}'
+pingRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$pingJson")
+
 homeWindowJson='{"jsonrpc":"2.0","method":"GUI.ActivateWindow","id":1,"params":{"window":"home"}}'
 homeWindowRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$homeWindowJson")
 

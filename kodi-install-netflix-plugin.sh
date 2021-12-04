@@ -39,10 +39,17 @@ then
 fi
 
 kodiExecutable=$(command -v kodi)
-kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
-kodiPid=$(ps -C "$kodiBin" -o pid=)
-
-cat >"$kodiHome"/userdata/advancedsettings.xml <<EOL
+pingResult=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$pingJson" | jq -r ".result")
+if [ "pong" != "$pingResult" ]
+then
+  kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
+  if [ -z "$kodiBin" ]
+  then
+    $kodiExecutable
+  else
+    kodiPid=$(ps -C "$kodiBin" -o pid=)
+    kill "$kodiPid"
+  cat >"$kodiHome"/userdata/advancedsettings.xml <<EOL
 <advancedsettings version="1.0">
    <services>
        <esallinterfaces>true</esallinterfaces>
@@ -52,6 +59,9 @@ cat >"$kodiHome"/userdata/advancedsettings.xml <<EOL
    </services>
 </advancedsettings>
 EOL
+    $kodiExecutable
+  fi
+fi
 
 majorVersion=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getVersionPropertyJson" | jq ".result.version.major")
 
