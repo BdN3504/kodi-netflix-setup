@@ -38,18 +38,16 @@ then
   touch "$kodiHome"/userdata/advancedsettings.xml
 fi
 
-kodiExecutable=$(command -v kodi)
 pingResult=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$pingJson" | jq -r ".result")
 if [ "pong" != "$pingResult" ]
 then
-  kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
-  if [ -z "$kodiBin" ]
+  echo "No jsonRpcServer is running on $jsonRpcAddress:$jsonRpcPort"
+  enableInAdvancedSettings=yes
+  read -r -e -i "$enableInAdvancedSettings" -p "Shall the jsonRpcServer be enabled in the advancedsettings.xml file?" enableInAdvancedSettingsInput
+  enableInAdvancedSettings=${enableInAdvancedSettingsInput:-$enableInAdvancedSettings}
+  if [ "yes" = "$enableInAdvancedSettings" ]
   then
-    $kodiExecutable
-  else
-    kodiPid=$(ps -C "$kodiBin" -o pid=)
-    kill "$kodiPid"
-  cat >"$kodiHome"/userdata/advancedsettings.xml <<EOL
+    cat >"$kodiHome"/userdata/advancedsettings.xml <<EOL
 <advancedsettings version="1.0">
    <services>
        <esallinterfaces>true</esallinterfaces>
@@ -59,7 +57,6 @@ then
    </services>
 </advancedsettings>
 EOL
-    $kodiExecutable
   fi
 fi
 
