@@ -26,6 +26,13 @@ then
   sudo apt -yq install jq
 fi
 
+dpkg -s curl &> /dev/null
+curlInstalled=$?
+if [ $curlInstalled -ne 0 ]
+then
+  sudo apt -yq install curl
+fi
+
 majorVersion=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getVersionPropertyJson" | jq ".result.version.major")
 
 if [ $majorVersion -eq 18 ]
@@ -192,4 +199,9 @@ fi
 if [ $jqInstalled -ne 0 ]
 then
   sudo apt -yq purge jq
+fi
+
+if [ $curlInstalled -ne 0 ]
+then
+  sudo apt -yq purge curl
 fi
