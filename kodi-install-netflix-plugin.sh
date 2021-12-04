@@ -53,12 +53,15 @@ then
    </services>
 </advancedsettings>
 EOL
-    kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
-    while [ -z "$kodiBin" ]
+    while [ "pong" != "$pingResult" ]
     do
-      echo "You need to start kodi now."
-      read -u 1 waitingForKodiToStart
-      kodiBin=$(ps -eo comm= | grep -E "(kodi)(\.bin|-x11|-wayland|-gbm)[_v7|_v8]*")
+      echo "You need to start kodi now and enable the json rpc server."
+      read -r -u 1 waitingForKodiToStart
+      pingResult=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$pingJson" | jq -r ".result")
+      if [ "pong" != "$pingResult" ]
+      then
+        echo "No jsonRpcServer is running on $jsonRpcAddress:$jsonRpcPort"
+      fi
     done
   fi
 fi
