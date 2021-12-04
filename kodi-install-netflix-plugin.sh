@@ -33,6 +33,22 @@ then
   sudo apt -yq install curl
 fi
 
+if [ ! -f "$kodiHome"/userdata/advancedsettings.xml ]
+then
+  touch "$kodiHome"/userdata/advancedsettings.xml
+fi
+
+cat >"$kodiHome"/userdata/advancedsettings.xml <<EOL
+<advancedsettings version="1.0">
+   <services>
+       <esallinterfaces>true</esallinterfaces>
+       <webserver>true</webserver>
+       <zeroconf>true</zeroconf>
+       <tcpport>$jsonRpcPort</tcpport>
+   </services>
+</advancedsettings>
+EOL
+
 majorVersion=$(curl --silent -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getVersionPropertyJson" | jq ".result.version.major")
 
 if [ $majorVersion -eq 18 ]
