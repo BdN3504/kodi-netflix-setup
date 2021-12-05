@@ -213,8 +213,14 @@ done
 
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
-echo "Trying to install kodi, check the sequence of dialogs."
-read -r -u 1 watingForUserInput
+currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+while [[ ! "$currentControl" =~ $installPattern ]]
+do
+  echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+done
+
+echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
 echo "DialogTitle is $dialogTitle."
@@ -234,15 +240,6 @@ then
 
   echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 fi
-
-currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-while [[ ! "$currentControl" =~ $installPattern ]]
-do
-  echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-  currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-done
-
-echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
 while [ "$currentControl" != "$version" ]
