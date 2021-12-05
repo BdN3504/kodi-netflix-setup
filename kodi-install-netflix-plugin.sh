@@ -11,6 +11,8 @@ downloadsFolder="Downloads"
 addonBrowserWindow="Add-on browser"
 installPattern="^Install.*$"
 ok="OK"
+warning="Warning!"
+yes="yes"
 
 dpkg -s ncat &> /dev/null
 ncatInstalled=$?
@@ -116,6 +118,22 @@ do
 done
 
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+
+if [ $majorVersion -eq 19 ]
+then
+  dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
+  if [ "$dialogTitle" == "$warning" ]
+  then
+    currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    while [[ ! "$currentControl" =~ $yes ]]
+    do
+      echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+      currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    done
+
+    echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  fi
+fi
 
 label=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getListItemLabelJson" | jq -r '.result."ListItem.Label"' )
 while [ "$label" != "$homeFolder" ]

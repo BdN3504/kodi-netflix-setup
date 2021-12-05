@@ -52,6 +52,10 @@ selectRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonR
 containerFolderNameJson='{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","id":1,"params":{"labels":["Container.FolderName"]}}'
 containerFolderNameRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$containerFolderNameJson")
 
+currentDialogTitleControlName='Control.GetLabel(1)'
+currentDialogTitleJson='{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","id":1,"params":{"labels":["Control.GetLabel(1)"]}}'
+currentDialogTitleRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$currentDialogTitleJson")
+
 currentControlJson='{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","id":1,"params":{"labels":["System.CurrentControl"]}}'
 currentControlRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$currentControlJson")
 
