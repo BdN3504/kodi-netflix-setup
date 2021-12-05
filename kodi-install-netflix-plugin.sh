@@ -134,7 +134,6 @@ then
   if [ "$dialogTitle" == "$warning" ]
   then
     currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-    echo "Current control is $currentControl."
     while [ "$currentControl" = "$no" ]
     do
       echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
@@ -235,12 +234,10 @@ read -r -u 1 watingForUserInput
 if [[ "$dialogTitle" =~ $additionalAddonsPattern ]]
 then
   currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-  echo "Current control is $currentControl."
   while [ "$currentControl" = "$Cancel" ]
   do
     echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
     currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-    echo "Current control inside while loop is $currentControl."
     read -r -u 1 watingForUserInput
     sleep 1
   done
