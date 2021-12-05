@@ -14,8 +14,6 @@ installPattern="^Install.*$"
 ok="OK"
 warning="Warning!"
 no="No"
-yes="Yes"
-cancel="Cancel"
 
 dpkg -s ncat &> /dev/null
 ncatInstalled=$?
