@@ -125,7 +125,7 @@ then
   if [ "$dialogTitle" == "$warning" ]
   then
     currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-    while [[ ! "$currentControl" =~ $yes ]]
+    while [ "$currentControl" != $yes ]
     do
       echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
       currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
