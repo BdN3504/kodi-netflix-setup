@@ -246,31 +246,34 @@ then
   done
 
   echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+else
+  if [ $majorVersion -eq 18 ]
+  then
+    currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    while [ "$currentControl" != "$version" ]
+    do
+      echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+      currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    done
+
+    echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+
+    sleep 1
+
+    echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+
+    echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+    currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    while [ "$currentControl" != "$ok" ]
+    do
+      echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+      currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+      sleep 1
+    done
+
+    echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  fi
 fi
-
-currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-while [ "$currentControl" != "$version" ]
-do
-  echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-  currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-done
-
-echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-sleep 1
-echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-while [ "$currentControl" != "$ok" ]
-do
-  echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-  currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-  sleep 1
-done
-
-echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 echo "$homeWindowRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
