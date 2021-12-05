@@ -14,7 +14,6 @@ installPattern="^Install.*$"
 ok="OK"
 warning="Warning!"
 no="No"
-yes="Yes"
 
 dpkg -s ncat &> /dev/null
 ncatInstalled=$?
@@ -74,8 +73,8 @@ majorVersion=$(curl --silent -X POST -H 'Content-Type: application/json' http://
 
 if [ $majorVersion -eq 18 ]
 then
-  castagnaitRpositoryFileName=repository.castagnait-1.0.1.zip
-  if [ ! -f "$downloadDir"/$castagnaitRpositoryFileName ]
+  castagnaitRepositoryFileName=repository.castagnait-1.0.1.zip
+  if [ ! -f "$downloadDir"/$castagnaitRepositoryFileName ]
   then
     wget https://github.com/castagnait/repository.castagnait/raw/master/repository.castagnait-1.0.1.zip -P "$downloadDir"
   fi
@@ -84,8 +83,8 @@ then
   version="Version 1.12.7"
 elif [ $majorVersion -eq 19 ]
 then
-  castagnaitRpositoryFileName=repository.castagnait-1.0.0.zip
-  if [ ! -f "$downloadDir"/$castagnaitRpositoryFileName ]
+  castagnaitRepositoryFileName=repository.castagnait-1.0.0.zip
+  if [ ! -f "$downloadDir"/$castagnaitRepositoryFileName ]
   then
     wget https://github.com/castagnait/repository.castagnait/raw/matrix/repository.castagnait-1.0.0.zip -P "$downloadDir"
   fi
@@ -96,11 +95,13 @@ else
   echo "Could not determine kodi version, check if jsonrpc interface is active." && exit
 fi
 
-echo "$enableUnknownSourcesRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+unknownSourcesEnabled=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$isUnknownSourcesEnabledJson" | jq -r '.result.value' )
+if [ "$unknownSourcesEnabled" == "false" ]
+then
+  echo "$enableUnknownSourcesRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+fi
 
 echo "$addonWindowRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
@@ -123,12 +124,10 @@ echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 if [ $majorVersion -eq 19 ]
 then
-  dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://localhost:8080/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
   dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
   if [ "$dialogTitle" == "$warning" ]
   then
     currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-    echo "Current control is $currentControl."
     while [ "$currentControl" = "$no" ]
     do
       echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
@@ -159,7 +158,7 @@ done
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 label=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getListItemLabelJson" | jq -r '.result."ListItem.Label"' )
-while [ "$label" != "$castagnaitRpositoryFileName" ]
+while [ "$label" != "$castagnaitRepositoryFileName" ]
 do
   echo "$downRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
   label=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getListItemLabelJson" | jq -r '.result."ListItem.Label"' )
@@ -222,29 +221,47 @@ done
 
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
-currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-while [ "$currentControl" != "$version" ]
-do
-  echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-  currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-done
-
-echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
 sleep 1
-echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-while [ "$currentControl" != "$ok" ]
-do
-  echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
+if [[ "$dialogTitle" =~ $additionalAddonsPattern ]]
+then
   currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-  sleep 1
-done
+  while [ "$currentControl" = "$Cancel" ]
+  do
+    echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+    currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    sleep 1
+  done
 
-echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+else
+  if [ $majorVersion -eq 18 ]
+  then
+    currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    while [ "$currentControl" != "$version" ]
+    do
+      echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+      currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    done
+
+    echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+
+    sleep 1
+
+    echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+
+    echo "$rightRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+    currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    while [ "$currentControl" != "$ok" ]
+    do
+      echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+      currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+      sleep 1
+    done
+
+    echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  fi
+fi
 
 echo "$homeWindowRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 

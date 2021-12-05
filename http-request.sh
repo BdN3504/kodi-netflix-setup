@@ -62,8 +62,11 @@ currentControlRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json"
 getListItemLabelJson='{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","id":1,"params":{"labels":["ListItem.Label"]}}'
 getListItemLabelRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$getListItemLabelJson")
 
-unknownSourcesJson='{"jsonrpc":"2.0","method": "Settings.SetSettingValue","id":1,"params": {"setting": "addons.unknownsources","value":true}}'
-enableUnknownSourcesRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$unknownSourcesJson")
+enableUnknownSourcesJson='{"jsonrpc":"2.0","method": "Settings.SetSettingValue","id":1,"params": {"setting": "addons.unknownsources","value":true}}'
+enableUnknownSourcesRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$enableUnknownSourcesJson")
+
+isUnknownSourcesEnabledJson='{"jsonrpc":"2.0","method":"Settings.GetSettingValue","id":1,"params":{"setting":"addons.unknownsources"}}'
+isUnknownSourcesEnabledRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$isUnknownSourcesEnabledJson")
 
 getVersionPropertyJson='{"jsonrpc":"2.0","id":1,"method": "Application.GetProperties", "params": {"properties":["version"]}}'
 getVersionPropertyRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$getVersionPropertyJson")
