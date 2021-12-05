@@ -15,6 +15,7 @@ ok="OK"
 warning="Warning!"
 no="No"
 yes="Yes"
+cancel="Cancel"
 
 dpkg -s ncat &> /dev/null
 ncatInstalled=$?
@@ -74,8 +75,8 @@ majorVersion=$(curl --silent -X POST -H 'Content-Type: application/json' http://
 
 if [ $majorVersion -eq 18 ]
 then
-  castagnaitRpositoryFileName=repository.castagnait-1.0.1.zip
-  if [ ! -f "$downloadDir"/$castagnaitRpositoryFileName ]
+  castagnaitRepositoryFileName=repository.castagnait-1.0.1.zip
+  if [ ! -f "$downloadDir"/$castagnaitRepositoryFileName ]
   then
     wget https://github.com/castagnait/repository.castagnait/raw/master/repository.castagnait-1.0.1.zip -P "$downloadDir"
   fi
@@ -84,8 +85,8 @@ then
   version="Version 1.12.7"
 elif [ $majorVersion -eq 19 ]
 then
-  castagnaitRpositoryFileName=repository.castagnait-1.0.0.zip
-  if [ ! -f "$downloadDir"/$castagnaitRpositoryFileName ]
+  castagnaitRepositoryFileName=repository.castagnait-1.0.0.zip
+  if [ ! -f "$downloadDir"/$castagnaitRepositoryFileName ]
   then
     wget https://github.com/castagnait/repository.castagnait/raw/matrix/repository.castagnait-1.0.0.zip -P "$downloadDir"
   fi
@@ -123,7 +124,6 @@ echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 if [ $majorVersion -eq 19 ]
 then
-  dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://localhost:8080/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
   dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
   if [ "$dialogTitle" == "$warning" ]
   then
@@ -159,7 +159,7 @@ done
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 label=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getListItemLabelJson" | jq -r '.result."ListItem.Label"' )
-while [ "$label" != "$castagnaitRpositoryFileName" ]
+while [ "$label" != "$castagnaitRepositoryFileName" ]
 do
   echo "$downRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
   label=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$getListItemLabelJson" | jq -r '.result."ListItem.Label"' )
@@ -212,6 +212,28 @@ do
 done
 
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+
+echo "Trying to install kodi, check the sequence of dialogs."
+read -r -u 1 watingForUserInput
+
+dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
+echo "DialogTitle is $dialogTitle."
+read -r -u 1 watingForUserInput
+if [[ "$dialogTitle" =~ $additionalAddonsPattern ]]
+then
+  currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+  echo "Current control is $currentControl."
+  while [ "$currentControl" = "$Cancel" ]
+  do
+    echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+    currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    echo "Current control inside while loop is $currentControl."
+    read -r -u 1 watingForUserInput
+    sleep 1
+  done
+
+  echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+fi
 
 currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
 while [[ ! "$currentControl" =~ $installPattern ]]
