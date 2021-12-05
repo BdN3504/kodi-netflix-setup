@@ -97,23 +97,14 @@ else
   echo "Could not determine kodi version, check if jsonrpc interface is active." && exit
 fi
 
-echo "enabling unknownSources"
-read -r -u 1 watingForUserInput
-
-echo "$enableUnknownSourcesRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-echo "moving left"
-read -r -u 1 watingForUserInput
-
-echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-echo "selecting"
-read -r -u 1 watingForUserInput
-
-echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-echo "opening addons"
-read -r -u 1 watingForUserInput
+unknownSourcesEnabled=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$isUnknownSourcesEnabledJson" | jq -r '.result.value' )
+echo "unknownSourcesEnabled: $unknownSourcesEnabled"
+if [ "$unknownSourcesEnabled" == "false" ]
+then
+  echo "$enableUnknownSourcesRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+  echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+fi
 
 echo "$addonWindowRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
