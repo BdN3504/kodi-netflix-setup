@@ -225,8 +225,6 @@ echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 sleep 1
 dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
-echo "DialogTitle is $dialogTitle."
-read -r -u 1 watingForUserInput
 if [[ "$dialogTitle" =~ $additionalAddonsPattern ]]
 then
   currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
@@ -234,7 +232,6 @@ then
   do
     echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
     currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-    read -r -u 1 watingForUserInput
     sleep 1
   done
 
