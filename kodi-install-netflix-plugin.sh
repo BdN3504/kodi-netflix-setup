@@ -99,11 +99,19 @@ fi
 
 echo "$enableUnknownSourcesRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
+read -r -u 1 watingForUserInput
+
 echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+
+read -r -u 1 watingForUserInput
 
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
+read -r -u 1 watingForUserInput
+
 echo "$addonWindowRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
+
+read -r -u 1 watingForUserInput
 
 currentFolder=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$containerFolderNameJson" | jq -r '.result."Container.FolderName"' )
 
