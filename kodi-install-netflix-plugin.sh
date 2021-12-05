@@ -98,7 +98,6 @@ else
 fi
 
 unknownSourcesEnabled=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$isUnknownSourcesEnabledJson" | jq -r '.result.value' )
-echo "unknownSourcesEnabled: $unknownSourcesEnabled"
 if [ "$unknownSourcesEnabled" == "false" ]
 then
   echo "$enableUnknownSourcesRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
@@ -107,9 +106,6 @@ then
 fi
 
 echo "$addonWindowRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
-
-echo "Checking if addons are opened"
-read -r -u 1 watingForUserInput
 
 currentFolder=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$containerFolderNameJson" | jq -r '.result."Container.FolderName"' )
 
