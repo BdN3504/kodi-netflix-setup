@@ -97,20 +97,27 @@ else
   echo "Could not determine kodi version, check if jsonrpc interface is active." && exit
 fi
 
+echo "enabling unknownSources"
+read -r -u 1 watingForUserInput
+
 echo "$enableUnknownSourcesRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
+echo "moving left"
 read -r -u 1 watingForUserInput
 
 echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
+echo "selecting"
 read -r -u 1 watingForUserInput
 
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
+echo "opening addons"
 read -r -u 1 watingForUserInput
 
 echo "$addonWindowRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
+echo "Checking if addons are opened"
 read -r -u 1 watingForUserInput
 
 currentFolder=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$containerFolderNameJson" | jq -r '.result."Container.FolderName"' )
