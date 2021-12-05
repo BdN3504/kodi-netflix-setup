@@ -12,6 +12,7 @@ addonBrowserWindow="Add-on browser"
 installPattern="^Install.*$"
 ok="OK"
 warning="Warning!"
+no="No"
 yes="Yes"
 
 dpkg -s ncat &> /dev/null
@@ -125,7 +126,7 @@ then
   if [ "$dialogTitle" == "$warning" ]
   then
     currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
-    while [ "$currentControl" != "$yes" ]
+    while [ "$currentControl" = "$no" ]
     do
       echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
       currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
