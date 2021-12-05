@@ -4,6 +4,7 @@ source http-request.sh
 installFromZipFile="Install from zip file"
 installFromRepository="Install from repository"
 castagnaITAddonRepositoryPattern="^CastagnaIT Repository for Kodi.*$"
+additionalAddonsPattern="^The following additional add-ons will be installed.*$"
 homeFolder="Home folder"
 videoAddons="Video add-ons"
 netflix="Netflix"
@@ -122,14 +123,17 @@ echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
 
 if [ $majorVersion -eq 19 ]
 then
+  dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://localhost:8080/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
   dialogTitle=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentDialogTitleJson" | jq -r '.result."Control.GetLabel(1)"' )
   if [ "$dialogTitle" == "$warning" ]
   then
     currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+    echo "Current control is $currentControl."
     while [ "$currentControl" = "$no" ]
     do
       echo "$leftRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
       currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+      sleep 1
     done
 
     echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
@@ -237,6 +241,7 @@ while [ "$currentControl" != "$ok" ]
 do
   echo "$upRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
   currentControl=$(curl -s -X POST -H 'Content-Type: application/json' http://"$jsonRpcAddress":"$jsonRpcPort"/jsonrpc --data "$currentControlJson" | jq -r '.result."System.CurrentControl"' )
+  sleep 1
 done
 
 echo "$selectRequest" | ncat "$jsonRpcAddress" "$jsonRpcPort" --send-only
