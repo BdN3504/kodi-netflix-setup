@@ -12,7 +12,7 @@ addonBrowserWindow="Add-on browser"
 installPattern="^Install.*$"
 ok="OK"
 warning="Warning!"
-yes="yes"
+yes="Yes"
 
 dpkg -s ncat &> /dev/null
 ncatInstalled=$?
