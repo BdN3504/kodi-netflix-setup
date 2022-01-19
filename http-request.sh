@@ -19,6 +19,9 @@ EOF
   echo "$result"
 }
 
+updateAudioLibraryJson='{"jsonrpc":"2.0","method":"AudioLibrary.Scan","id":1}'
+updateAudioLibraryJsonRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$updateAudioLibraryJson")
+
 pingJson='{"jsonrpc":"2.0","method":"JSONRPC.Ping","id":1}'
 pingRequest=$(generateHttpRequest "POST" "/jsonrpc" "application/json" "$jsonRpcAddress" "$jsonRpcPort" "$pingJson")
 
