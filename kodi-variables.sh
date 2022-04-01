@@ -12,7 +12,7 @@ then
   kodiHome=${kodiHomeInput:-$kodiHome}
   sed -i -E "s|^(kodiHome=)/.*$|\1$kodiHome|g" "$variablesScript"
 
-  read -e -i "$downloadDir" -p "Provide the Downloads directoy location: " downloadDirInput
+  read -e -i "$downloadDir" -p "Provide the Downloads directory location: " downloadDirInput
   downloadDir=${downloadDirInput:-$downloadDir}
   sed -i -E "s|^(downloadDir=)/.*$|\1$downloadDir|g" "$variablesScript"
 
